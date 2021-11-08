@@ -1,14 +1,21 @@
 
 using StatsFuns
+using Measurements
+
 include("OptionContract.jl")
 
 standardConfig = Dict(:daysInYear => 252,  :r => .001)
 fullYearConfig = Dict(:daysInYear => 365,  :r => .001)
 
 
-function d1d2( strike::Float64, spot::Float64, iv::Float64, dtoexp::Float64, cfg=:standardConfig)
+function d1d2( strike::AbstractFloat, spot::AbstractFloat, iv::AbstractFloat, dtoexp::AbstractFloat, cfg=standardConfig)
+	d1d2(strike, spot, measurement(iv), dtoexp, cfg)
+end
+
+
+function d1d2( strike::AbstractFloat, spot::AbstractFloat, iv::Measurements.Measurement{Float64}, dtoexp::AbstractFloat, cfg=standardConfig)
 	τ=dtoexp /cfg[:daysInYear]
-	a::Float64 = iv * sqrt(τ)
+	a = iv * sqrt(τ)
 	d1=(log(spot/strike) + (cfg[:r] + .5*iv^2)*τ)/a
 	d2 = d1 - a
 	erfτ=exp(-cfg[:r] * τ)
@@ -23,7 +30,7 @@ end
 # (944.8682997022215, -0.4307189572858482, -0.5456042252022355, 0.00015849621213688658, 14.07153393862377, -11.06159311981074)
 #@show greeks(8500.,8572.,.6920, 44., PUT  )
 
-function greeks(strike::Float64, spot::Float64, iv::Float64,timeToExpInDays=7, type::OptType=CALL, cfg=standardConfig)
+function greeks(strike::AbstractFloat, spot::AbstractFloat, iv::Measurements.Measurement{Float64},timeToExpInDays=7, type::OptType=CALL, cfg=standardConfig)
  	d1,d2, days, τ, erfτ,a = d1d2(strike,spot,iv,timeToExpInDays, cfg)
 	Nd1=normcdf(d1)
 	Nd2=normcdf(d2)
@@ -57,7 +64,11 @@ function greeks(o::Option, d::DateTime = now())
 end
 
 #greeks(Option("TSLA220617C00106000"), 100., .54, 10.)
-function greeks(o::Option, spot::Float64, iv::Float64, daysToExp::Float64)
+function greeks(o::Option, spot::AbstractFloat, iv::AbstractFloat, daysToExp::AbstractFloat)
+	greeks(o.strike, spot,measurement(iv),daysToExp, o.type)
+end
+
+function greeks(o::Option, spot::AbstractFloat, iv::Measurements.Measurement{Float64}, daysToExp::AbstractFloat)
 	greeks(o.strike, spot,iv,daysToExp, o.type)
 end
 
@@ -66,14 +77,20 @@ end
 # greeks(x, 100., .54, 10.)
 # assume all options have same greeks.
 # TODO:  make iv to be a function of spot and time to exp to capture smile
-function greeks( x::opContract , spot::Float64, iv::Float64,  daysToExp::Float64)
+function greeks( x::opContract , spot::AbstractFloat, iv::Measurements.Measurement{Float64},  daysToExp::AbstractFloat)
 	sum([c .* [greeks(o, spot, iv, daysToExp)...] for (c, o) in x.os], dims=2)[1]
 end
 
+function greeks( x::opContract , spot::AbstractFloat, iv::Float64,  daysToExp::AbstractFloat)
+	greeks(x, spot, measurement(iv), daysToExp)
+end
 
 
 # # 764 10/11/21 BOT 4 AMZN October 15, 2021 15 Oct 3380/3400/3450 call bwb (0.14) $56.00) bwb for small credit setting up adjustment for larger gain later
 # # 764 10/12/21 BOT 4 AMZN October 15, 2021 15 Oct 3380/3400/3450 call bwb 0.00) $0.00) added four more units at even money
 # # 764 10/13/21 SLD 2 AMZN October 15, 2021 15 Oct 3400/3450 call vert (0.60) $120.00)
-x=greeks(4 * bwb("AMZN", 3380.,3400.,3450., Date("2021-10-15"), CALL) - 2 * vertical("AMZN",3400.,3450., Date("2021-10-15"), CALL),
-    3400., .55, 2.)
+#x=greeks(4 * bwb("AMZN", 3380.,3400.,3450., Date("2021-10-15"), CALL) - 2 * vertical("AMZN",3400.,3450., Date("2021-10-15"), CALL),
+#    3400., .55, 2.)
+
+
+#d1d2(100., 120., .5, 5.)
