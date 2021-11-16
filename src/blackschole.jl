@@ -77,12 +77,18 @@ function greeks( x::opContract , spot, iv,  daysToExp)
 end
 
 
+function dollarGamma( x::opContract , spot, iv,  daysToExp)
+		.01 * spot^2 * greeks(x,spot,iv,daysToExp )[4]
+end
+
 # # 764 10/11/21 BOT 4 AMZN October 15, 2021 15 Oct 3380/3400/3450 call bwb (0.14) $56.00) bwb for small credit setting up adjustment for larger gain later
 # # 764 10/12/21 BOT 4 AMZN October 15, 2021 15 Oct 3380/3400/3450 call bwb 0.00) $0.00) added four more units at even money
 # # 764 10/13/21 SLD 2 AMZN October 15, 2021 15 Oct 3400/3450 call vert (0.60) $120.00)
-#x=greeks(4 * bwb("AMZN", 3380.,3400.,3450., Date("2021-10-15"), CALL) - 2 * vertical("AMZN",3400.,3450., Date("2021-10-15"), CALL),
+#x=greeks(4 * butterfly("AMZN", 3380.,3400.,3450., Date("2021-10-15"), CALL) - 2 * vertical("AMZN",3400.,3450., Date("2021-10-15"), CALL),
  #   3400., .55, 2.)
 
 
 #d1d2(100., 120., .5, 5.)
 
+# dollarGamma(4 * butterfly("AMZN", 3380.,3400.,3450., Date("2021-10-15"), CALL) - 2 * vertical("AMZN",3400.,3450., Date("2021-10-15"), CALL),
+#     3400., .55, .05)

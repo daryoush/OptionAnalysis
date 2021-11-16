@@ -103,20 +103,20 @@ end
 
 #bwb("AMZN", 3380.,3400.,3450., Date("2021-10-15"), CALL)
 
-function option( s::String, k::Float64, dt::Date, t::OptType=CALL)
+function option( s::String, k, dt::Date, t::OptType=CALL)
 	Option(t, s, dt, k, "OPTSYM-TBD")
 end
 
 
-function call( s::String, k::Float64, dt::Date)
-	option(s,k,dt, CALL)
+function call( s::String, k, dt::Date, cnt=1)
+	cnt * option(s,k,dt, CALL)
 end
 
-function put( s::String, k::Float64, dt::Date)
-	option(s,k,dt, PUT)
+function put( s::String, k, dt::Date, cnt=1)
+	cnt * option(s,k,dt, PUT)
 end
 
-function bwb(s::String, l::Float64, m::Float64, r::Float64, dt::Date, t::OptType=CALL ) 
+function butterfly(s::String, l::Float64, m::Float64, r::Float64, dt::Date, t::OptType=CALL ) 
 	left=Option(t, s, dt, l , "OPTSYM-TBD")
 	middle=Option(t, s, dt, m , "OPTSYM-TBD")
 	right=Option(t, s, dt, r , "OPTSYM-TBD")
@@ -132,7 +132,7 @@ end
 # 764 10/11/21 BOT 4 AMZN October 15, 2021 15 Oct 3380/3400/3450 call bwb (0.14) $56.00) bwb for small credit setting up adjustment for larger gain later
 # 764 10/12/21 BOT 4 AMZN October 15, 2021 15 Oct 3380/3400/3450 call bwb 0.00) $0.00) added four more units at even money
 # 764 10/13/21 SLD 2 AMZN October 15, 2021 15 Oct 3400/3450 call vert (0.60) $120.00)
-#print(4 * bwb("AMZN", 3380.,3400.,3450., Date("2021-10-15"), CALL) - 2 * vertical("AMZN",3400.,3450., Date("2021-10-15"), CALL))
+#print(4 * butterfly("AMZN", 3380.,3400.,3450., Date("2021-10-15"), CALL) - 2 * vertical("AMZN",3400.,3450., Date("2021-10-15"), CALL))
 
 
 

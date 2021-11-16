@@ -43,21 +43,37 @@ end
 # ╔═╡ 951d85c6-b1bc-4652-9078-aefc8dd19dcb
 begin
 	expDaysChoices = string.(sort(unique(df.daysToExpiration)))
-	 @bind daysFilter Radio(expDaysChoices)
+	md"""
+	 DaysToExpiration: 
+	
+	 $(@bind daysFilter MultiCheckBox(expDaysChoices, orientation=:column,  select_all=true)) 
+	 
+	"""
 
 end
 
 # ╔═╡ dc7255a0-6279-48f9-b683-b8bdb12dc2fe
 begin
-	daysToExpChoice = parse(Int,daysFilter)
-	quotesOnDays = data.ff(df, :daysToExpiration => ==(daysToExpChoice))
-	qq = sort(unique(quotesOnDays.quoteGroupId))
-	@bind quoteTime Radio(string.(qq))
+	if !isnothing(daysFilter)  && length(daysFilter) >= 1 
+		daysToExpChoice = parse.(Int,daysFilter)
+		quotesOnDays = data.ff(df, :daysToExpiration => in(daysToExpChoice))
+		qq = string.(sort(unique(Time.(quotesOnDays.quoteGroupId))))
+		
+		md"""
+		Quote Time:
+		
+		$(@bind quoteTime MultiCheckBox(qq,  select_all=true, default=[qq[1]]))
+		"""
+
+	end
+	#@bind quoteTime Radio(string.(qq))
 end
 
 # ╔═╡ 6637ad7c-6a22-464a-b224-2cd21e9ab768
-# TODO Chance the plotting so its is recursive and keeps adding to the previous one
-# util there is a initalize again.
+quoteTime
+
+# ╔═╡ 225bd973-4a01-4636-a745-107efb1bb27f
+daysToExpChoice
 
 # ╔═╡ 97633161-94ac-44c2-af5f-cf2c7d3d805b
 basePlot() = plot([3380.,3400.,3450], st=:vline, style=:dot, lw=4)
@@ -78,10 +94,10 @@ end
 
 # ╔═╡ b5e86a33-94ec-45a3-98cd-2371c18afe96
 begin
-	q = DateTime(quoteTime)
+	q = Time.(quoteTime)
 	quotes = @chain df (
-		data.ff(:quoteGroupId => ==(q));
-		data.ff(:daysToExpiration => ==(daysToExpChoice));
+		data.ff(:quoteGroupId => x -> Time.(x) in(q));
+		data.ff(:daysToExpiration => in(daysToExpChoice));
 	)
 	 volPlot(quotes, basePlot)
 end
@@ -105,6 +121,7 @@ end
 # ╠═951d85c6-b1bc-4652-9078-aefc8dd19dcb
 # ╠═dc7255a0-6279-48f9-b683-b8bdb12dc2fe
 # ╠═6637ad7c-6a22-464a-b224-2cd21e9ab768
+# ╠═225bd973-4a01-4636-a745-107efb1bb27f
 # ╠═97633161-94ac-44c2-af5f-cf2c7d3d805b
 # ╠═b5e86a33-94ec-45a3-98cd-2371c18afe96
 # ╠═02ae96f4-88ff-46ec-8117-403bed12367c
